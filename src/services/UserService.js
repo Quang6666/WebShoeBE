@@ -39,47 +39,60 @@ const createUser = (newUser) => {
 };
 const loginUser = (userLogin) => {
     return new Promise(async (resolve, reject) => {
-        const {name, email, password, phone} = userLogin
+        const { email, password } = userLogin;
+
+        if (!email || !password) {
+            return reject({
+                status: 'ERR',
+                message: 'Email and password are required'
+            });
+        }
+
         try {
-            const checkUser = await User.findOne({
-                email: email
-            })
-            if (checkUser == null){
-                resolve({
-                    status: 'OK',
-                    message: 'The user is not defined'
-                })
-            }
-            const comparePassword = bcrypt.compareSync(password, checkUser.password)
-            console.log('comparePassword', comparePassword)
-                if(!comparePassword)
-                resolve({
-                    status: 'OK',
-                    message: 'The password or user is incorrect',
-                })
-                const access_token = await generalAccessToken({
-                    id: checkUser.id,
-                    isAdmin: checkUser.isAdmin
+            const checkUser = await User.findOne({ email });
+
+            if (!checkUser) {
+                return reject({
+                    status: 'ERR',
+                    message: 'The user does not exist'
                 });
-                
-                const refresh_token = await generalRefreshToken({
-                    id: checkUser.id,
-                    isAdmin: checkUser.isAdmin
-                });
-                
-                resolve({
-                    status: 'OK',
-                    message: 'SUCCESS',
-                    access_token,
-                    refresh_token
-                })
             }
-         catch (e) {
-            
-            reject(e);
+
+            const comparePassword = bcrypt.compareSync(password, checkUser.password);
+
+            if (!comparePassword) {
+                return reject({
+                    status: 'ERR',
+                    message: 'Invalid email or password'
+                });
+            }
+
+            const access_token = await generalAccessToken({
+                id: checkUser.id,
+                isAdmin: checkUser.isAdmin
+            });
+
+            const refresh_token = await generalRefreshToken({
+                id: checkUser.id,
+                isAdmin: checkUser.isAdmin
+            });
+
+            resolve({
+                status: 'OK',
+                message: 'SUCCESS',
+                access_token,
+                refresh_token
+            });
+        } catch (error) {
+            console.error(error);
+            reject({
+                status: 'ERR',
+                message: 'Server Error'
+            });
         }
     });
 };
+
 const updateUser = (id, data) => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -105,32 +118,70 @@ const updateUser = (id, data) => {
     })
 }
 const deleteUser = (id) => {
-    return new Promise(async(resolve, reject)=>{
-        try{
+    return new Promise(async (resolve, reject) => {
+        try {
             const checkUser = await User.findOne({
                 _id: id
             })
-            if (checkUser === null){
+            if (checkUser === null) {
                 resolve({
-                    status: 'OK',
+                    status: 'ERR',
                     message: 'The user is not defined'
                 })
             }
+
             await User.findByIdAndDelete(id)
             resolve({
-                status:'OK',
-                message:'Delete user success',
+                status: 'OK',
+                message: 'Delete user success',
             })
-        } catch(e){
+        } catch (e) {
             reject(e)
         }
     })
-    
-};
+}
+const getAllUser = () => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const allUser = await User.find().sort({createdAt: -1, updatedAt: -1})
+            resolve({
+                status: 'OK',
+                message: 'Success',
+                data: allUser
+            })
+        } catch (e) {
+            reject(e)
+        }
+    })
+}
+const getDetailsUser = (id) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const user = await User.findOne({
+                _id: id
+            })
+            if (user === null) {
+                resolve({
+                    status: 'ERR',
+                    message: 'The user is not defined'
+                })
+            }
+            resolve({
+                status: 'OK',
+                message: 'SUCESS',
+                data: user
+            })
+        } catch (e) {
+            reject(e)
+        }
+    })
+}
 module.exports = {
     createUser,
     loginUser,
     updateUser,
-    deleteUser
+    deleteUser,
+    getAllUser,
+    getDetailsUser
 
 };
