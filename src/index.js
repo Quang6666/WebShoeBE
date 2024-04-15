@@ -1,12 +1,12 @@
-const express = require("express");
-const dotenv = require('dotenv');
-const mongoose  = require("mongoose");
-const routes = require("./routes");
-const bodyParser = require("body-parser");
+const express = require("express"); //module để khởi tạo server
+const dotenv = require('dotenv');  // module để config   
+const mongoose  = require("mongoose");// module để truy cập vào mongodb
+const routes = require("./routes");// module để truy cập tài nguyên của thư mục routes
+const bodyParser = require("body-parser");//module để phân tích và xử lý dữ liệu của gửi từ client đến server
 dotenv.config()
 
-const app = express()
-const port = process.env.PORT || 3001
+const app = express() //hàm tạo 1 ứng dụng Express mới
+const port = process.env.PORT || 3001 //biến xác định cổng mà máy chủ sẽ lắng nghe yêu cầu từ phía người dùng
 app.use(bodyParser.json())
 
 routes(app);
