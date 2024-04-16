@@ -1,19 +1,37 @@
 const Cart = require('../models/CartModel');
 
-const createCart = async (cartData) => {
-    try {
-        const cart = new Cart(cartData);
-        const savedCart = await cart.save();
-        return {
-            status: 'OK',
-            message: 'Cart created successfully',
-            data: savedCart
-        };
-    } catch (error) {
-        throw error;
-    }
-};
+const createCart = (newCart) => {
+    return new Promise(async (resolve, reject) => {
+        const { userId, productId, totalPrice} = newCart
+        try {
+            const checkCart = await Cart.findOne({
+                userId: userId,
+                productId: productId,
+                totalPrice: totalPrice
+            })
+            if (checkCart !== null){
+                resolve({
+                    status: 'OK',
+                    message: 'The cart is already'
+                })
+            }
 
+            const createCart = await Cart.create({
+                userId, productId, totalPrice
+            });
+            if (createCart) {
+                resolve({
+                    status: 'OK',
+                    message: 'Cart created successfully',
+                    data: createCart
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            reject(error);
+        }
+    });
+};
 const getCartByUserId = async (userId) => {
     try {
         const cart = await Cart.findOne({ userId }).populate('products.productId');

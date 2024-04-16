@@ -3,7 +3,7 @@ const router = express.Router()
 const CartController = require ('../controllers/CartController')
 
 router.post('/createCart', CartController.createCart)
-router.get('/getCart', CartController.getCartByUserId)
-router.delete('/deleteCart', CartController.deleteCartByUserId)
+router.get('/getCart/:userId', CartController.getCartByUserId)
+router.delete('/deleteCart/:id', CartController.deleteCartByUserId)
 
 module.exports = router
