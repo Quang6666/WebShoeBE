@@ -32,8 +32,30 @@ const getCartByUserId = async (userId) => {
         throw error;
     }
 };
+const deleteCartByUserId = async (userId) => {
+    try {
+        // Tìm giỏ hàng của người dùng dựa trên userId và xóa nó
+        const result = await Cart.deleteOne({ userId: userId });
+
+        
+        if (result.deletedCount === 0) {
+            return {
+                status: 'ERR',
+                message: 'No cart found for the specified user'// Kiểm tra xem có giỏ hàng nào được xóa không
+            };
+        }
+
+        return {
+            status: 'OK',
+            message: 'Cart deleted successfully'
+        };
+    } catch (error) {
+        throw error; 
+    }
+};
 
 module.exports = {
     createCart,
-    getCartByUserId
+    getCartByUserId,
+    deleteCartByUserId
 };
