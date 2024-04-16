@@ -106,24 +106,46 @@ const deleteProduct = (id) => {
         }
     })
 }
-const getAllProduct = (limit = 8, page = 0) => {
+const getAllProduct = (limit, page, sort, filter) => {
     return new Promise(async (resolve, reject) => {
         try {
-            const totalProduct = await Product.countDocuments()
-            const allProduct = await Product.find().limit(limit).skip(page * limit)
+            let query = Product.find().limit(limit).skip(page * limit);
+
+            if (filter) {
+                const filterField = filter[0];
+                const filterValue = filter[1];
+                const filterObject = {};
+                filterObject[filterField] = filterValue;
+                query = query.where(filterObject);
+            }
+
+            
+            if (sort) {
+                const sortField = sort[0];
+                const sortOrder = sort[1] === 'desc' ? -1 : 1;// Nếu hướng sắp xếp là 'desc' (giảm dần), sử dụng -1; nếu không, sẽ là 1 (tăng dần)
+                const sortObject = {};
+                sortObject[sortField] = sortOrder;
+                query = query.sort(sortObject);
+            }
+
+            const totalProduct = await Product.countDocuments();
+            const allProduct = await query.exec(); // Thực thi truy vấn và trả về kết quả
+
             resolve({
                 status: 'OK',
-                message: 'Success',
+                message: 'Search Success',
                 data: allProduct,
                 total: totalProduct,
-                pageCurrent:page + 1,
-                totalPage: Math.ceil(totalProduct/limit)
-            })
+                pageCurrent: page + 1,
+                totalPage: Math.ceil(totalProduct / limit)
+            });
         } catch (e) {
-            reject(e)
+            reject(e);
         }
-    })
-}
+    });
+};
+
+
 module.exports = {
     createProduct,
     updateProduct,
