@@ -1,8 +1,7 @@
-const Order = require('../models/OrderProduct'); // Import model Order
+const Order = require('../models/OrderProduct');
 const Cart = require('../models/CartModel')
 const createOrderFromCart = async (userId) => {
     try {
-        // Tìm giỏ hàng đã xác nhận dựa trên userId
         const confirmedCart = await Cart.findOne({ userId }).populate('products.product');
         if (!confirmedCart || !confirmedCart.confirmed) {
             return {
@@ -10,8 +9,6 @@ const createOrderFromCart = async (userId) => {
                 message: 'Confirmed cart not found'
             };
         }
-
-        // Trích xuất thông tin cần thiết từ giỏ hàng đã xác nhận để tạo một đơn hàng mới
         const orderItems = confirmedCart.products.map(product => ({
             name: product.name,
             amount: product.amount,
@@ -20,8 +17,6 @@ const createOrderFromCart = async (userId) => {
             product: product.product._id
         }));
         const { shippingAddress, paymentMethod, totalPrice, user } = confirmedCart;
-
-        // Tạo một đơn hàng mới sử dụng thông tin đã trích xuất
         const order = await Order.create({
             orderItems,
             shippingAddress,
@@ -29,8 +24,6 @@ const createOrderFromCart = async (userId) => {
             totalPrice,
             user
         });
-
-        // Xóa giỏ hàng đã xác nhận
         await Cart.deleteOne({ userId });
 
         return {
@@ -43,5 +36,4 @@ const createOrderFromCart = async (userId) => {
         throw new Error('Failed to create order from cart');
     }
 };
-
 module.exports = { createOrderFromCart };

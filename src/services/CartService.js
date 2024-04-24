@@ -70,7 +70,20 @@ const createCart = async (newCart) => {
     }
     
 };
-
+const removeProductFromCart = async (userId, productId) => {
+    try {
+        const cart = await Cart.findOne({ userId: userId });
+        if (!cart) {
+            return { status: 'ERR', message: 'Cart not found' };
+        }
+        cart.products = cart.products.filter(product => product.product.toString() !== productId);
+        await cart.save();
+        return { status: 'OK', message: 'Product removed from cart successfully', data: cart };
+    } catch (error) {
+        console.error(error);
+        throw new Error('Failed to remove product from cart');
+    }
+};
 const confirmCartByUserId = async (userId) => {
     try {
         // Tìm giỏ hàng của người dùng dựa trên userId
@@ -95,7 +108,6 @@ const confirmCartByUserId = async (userId) => {
         throw new Error('Failed to confirm cart');
     }
 };
-
 const getCartByUserId = async (userId) => {
     try {
         const cart = await Cart.findOne({ userId }).populate('products');
@@ -160,40 +172,6 @@ const getAllCarts = async () => {
         throw error;
     }
 };
-const updateCartByUserId = (userId, updatedCartData) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const checkCart = await Cart.findOne({ userId });
-
-            if (!checkCart) {
-                resolve({
-                    status: 'ERR',
-                    message: 'No cart found for the specified user'
-                });
-            }
-
-            const updatedCart = await Cart.updateOne({ userId }, updatedCartData);
-
-            // Kiểm tra xem có lỗi khi cập nhật hay không
-            if (updatedCart.nModified === 0) {
-                resolve({
-                    status: 'ERR',
-                    message: 'Failed to update cart'
-                });
-            }
-
-            // Trả về phản hồi cho client
-            resolve({
-                status: 'OK',
-                message: 'Cart updated successfully',
-                data: updatedCartData // Trả về dữ liệu giỏ hàng đã cập nhật
-            });
-        } catch (error) {
-            reject(error);
-        }
-    });
-};
-
 
 module.exports = {
     createCart,
@@ -201,6 +179,6 @@ module.exports = {
     deleteCartByUserId,
     deleteCarts,
     getAllCarts,
-    updateCartByUserId,
-    confirmCartByUserId
+    confirmCartByUserId,
+    removeProductFromCart
 };

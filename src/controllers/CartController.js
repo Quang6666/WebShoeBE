@@ -21,8 +21,17 @@ const createCart = async (req, res) => {
         });
     }
 };
+const removeProductFromCart = async (req, res) => {
+    try {
+        const { userId, productId } = req.body;
 
-
+        const result = await CartService.removeProductFromCart(userId, productId);
+        return res.status(200).json(result);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ status: 'ERR', message: 'Internal server error' });
+    }
+};
 const getCartByUserId = async (req, res) => {
     try {
         const { userId } = req.params;
@@ -69,8 +78,6 @@ const deleteCarts = async (req, res) => {
         });
     }
 };
-
-
 const getAllCarts = async (req, res) => {
     try {
         const carts = await CartService.getAllCarts();
@@ -90,29 +97,12 @@ const getAllCarts = async (req, res) => {
         });
     }
 };
-const updateCartByUserId = async (req, res) => {
-    try {
-        const userId = req.params.userId
-        const data = req.body
-        if (!userId) {
-            return res.status(200).json({
-                status: 'ERR',
-                message: 'The userId is required'
-            })
-        }
-        const response = await CartService.updateCartByUserId(userId, data)
-        return res.status(200).json(response)
-    } catch (e) {
-        return res.status(404).json({
-            message: 'Sai'
-        })
-    }
-}
+
 module.exports = {
     createCart,
     getCartByUserId,
     deleteCartByUserId,
     deleteCarts,
     getAllCarts,
-    updateCartByUserId
+    removeProductFromCart
 };

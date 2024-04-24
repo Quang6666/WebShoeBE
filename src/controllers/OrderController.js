@@ -1,5 +1,4 @@
 const orderService = require('../services/OrderService');
-
 const createOrder = async (req, res) => {
     try {
         const orderData = req.body;
@@ -15,5 +14,4 @@ const createOrder = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 }
-
 module.exports = { createOrder };

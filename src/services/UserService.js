@@ -2,7 +2,6 @@ const User = require('../models/UserModel');
 const bcrypt = require("bcrypt");
 const { generalAccessToken, generalRefreshToken } = require('./JwtService');
 
-
 const createUser = (newUser) => {
     return new Promise(async (resolve, reject) => {
         const {name, email, password, phone} = newUser
@@ -92,7 +91,6 @@ const loginUser = (userLogin) => {
         }
     });
 };
-
 const updateUser = (id, data) => {
     return new Promise(async (resolve, reject) => {
         try {
