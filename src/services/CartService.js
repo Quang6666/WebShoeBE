@@ -4,27 +4,53 @@ const Product = require('../models/ProductModel');
 const createCart = async (newCart) => {
     const { userId, products } = newCart;
     try {
-        // Kiểm tra xem giỏ hàng đã tồn tại chưa
         const checkCart = await Cart.findOne({ userId: userId });
         if (checkCart !== null) {
+            const updatedProducts = await Promise.all(products.map(async (product) => {
+                const existingProduct = checkCart.products.find(p => p.product.toString() === product.productId.toString());
+                if (existingProduct) {
+                    const productInfo = await Product.findById(existingProduct.product);
+                    if (productInfo.countInStock > existingProduct.quantity) {
+                        existingProduct.quantity += 1;
+                        return existingProduct;
+                    } else {
+                        return existingProduct;
+                    }
+                } else {
+                    const productInfo = await Product.findById(product.productId);
+                    if (productInfo.countInStock > 0) {
+                        return {
+                            productId: product.productId,
+                            name: productInfo.name,
+                            image: productInfo.image,
+                            price: productInfo.price,
+                            product: product.productId,
+                            quantity: 1
+                        };
+                    } else {
+                        return null;
+                    }
+                }
+            }));
+            const filteredProducts = updatedProducts.filter(product => product !== null);
+            checkCart.products = filteredProducts;
+            await checkCart.save();
             return {
                 status: 'OK',
-                message: 'The cart already exists'
+                message: 'Cart updated successfully',
+                data: checkCart
             };
         }
-        const productId =  products.map(product => product.productId)
-        // Tạo giỏ hàng mới
-        const cartProducts = await Product.find({ _id: { $in: productId }});
+        const cartProducts = await Product.find({ _id: { $in: products.map(product => product.productId) }});
         const productsForCart = cartProducts.map(product => ({
-            product: product,
+            productId: product._id,
             name: product.name,
             image: product.image,
-            amount: product.amount,
             price: product.price,
-            countInStock: product.countInStock,
-            rating: product.rating
+            product: product,
+            quantity: 1
         }));
-        
+
         const createCart = await Cart.create({
             userId: userId,
             products: productsForCart
@@ -42,11 +68,6 @@ const createCart = async (newCart) => {
         throw error;
     }
 };
-
-module.exports = createCart;
-
-
-
 const getCartByUserId = async (userId) => {
     try {
         const cart = await Cart.findOne({ userId }).populate('products');
@@ -65,7 +86,6 @@ const getCartByUserId = async (userId) => {
         throw error;
     }
 };
-
 const deleteCartByUserId = async (userId) => {
     try {
         // Tìm giỏ hàng của người dùng dựa trên userId và xóa nó
@@ -93,7 +113,6 @@ const deleteCartByUserId = async (userId) => {
         throw error; 
     }
 };
-
 const deleteCarts = async (userIds) => {
     try {
         const result = await Cart.deleteMany({ userId: { $in: userIds } });
@@ -104,7 +123,6 @@ const deleteCarts = async (userIds) => {
         throw error;
     }
 };
-
 const getAllCarts = async () => {
     try {
         const carts = await Cart.find({});
@@ -114,11 +132,46 @@ const getAllCarts = async () => {
         throw error;
     }
 };
+const updateCartByUserId = (userId, updatedCartData) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const checkCart = await Cart.findOne({ userId });
+
+            if (!checkCart) {
+                resolve({
+                    status: 'ERR',
+                    message: 'No cart found for the specified user'
+                });
+            }
+
+            const updatedCart = await Cart.updateOne({ userId }, updatedCartData);
+
+            // Kiểm tra xem có lỗi khi cập nhật hay không
+            if (updatedCart.nModified === 0) {
+                resolve({
+                    status: 'ERR',
+                    message: 'Failed to update cart'
+                });
+            }
+
+            // Trả về phản hồi cho client
+            resolve({
+                status: 'OK',
+                message: 'Cart updated successfully',
+                data: updatedCartData // Trả về dữ liệu giỏ hàng đã cập nhật
+            });
+        } catch (error) {
+            reject(error);
+        }
+    });
+};
+
 
 module.exports = {
     createCart,
     getCartByUserId,
     deleteCartByUserId,
     deleteCarts,
-    getAllCarts
+    getAllCarts,
+    updateCartByUserId,
 };
