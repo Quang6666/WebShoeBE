@@ -1,14 +1,18 @@
-
 const mongoose = require('mongoose');
 
 const cartSchema = new mongoose.Schema({
     userId: {
-        type: mongoose.Schema.Types.ObjectId, // trường dùng để lưu trữ ID của người dùng. Dùng để xác định người dùng nào sở hữu giỏ hàng này.
-        ref: 'User',// cho biết rằng giá trị của trường này là một ObjectId tham chiếu tới model User 
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
         required: true
     },
+    
     products: [{
-        productId: {
+        name: { type: String, required: true },
+        amount: { type: Number, required: false, default: 1 },
+        image: { type: String, required: false },
+        price: { type: Number, required: true },
+        product: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Product',
             required: true

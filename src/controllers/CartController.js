@@ -2,12 +2,12 @@ const CartService = require('../services/CartService');
 
 const createCart = async (req, res) => {
     try {
-        const { userId, productId } = req.body;
+        const { userId, products } = req.body;
 
-        if (!userId || !productId) {
+        if (!userId || !products) {
             return res.status(400).json({
                 status: 'ERR',
-                message: 'User ID is required'
+                message: 'User ID and products are required'
             });
         } 
 
@@ -17,10 +17,11 @@ const createCart = async (req, res) => {
         console.error(error);
         return res.status(500).json({
             status: 'ERR',
-            message: 'Internal Server Error'
+            message: 'Create cart failed'
         });
     }
 };
+
 
 const getCartByUserId = async (req, res) => {
     try {
@@ -40,11 +41,45 @@ const deleteCartByUserId = async (req, res) => {
     try {
         const { userId } = req.params;
 
-        // Gọi hàm xóa giỏ hàng từ service
         const response = await CartService.deleteCartByUserId(userId);
 
-        // Trả về kết quả cho client
         return res.status(200).json(response);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            status: 'ERR',
+            message: 'Internal Server Error'
+        });
+    }
+};
+const deleteCarts = async (req, res) => {
+    try {
+        const { userIds } = req.body; // Đọc danh sách userId từ body request
+
+        // Lặp qua từng userId và gọi hàm xóa giỏ hàng tương ứng
+        const deleteResponses = await Promise.all(userIds.map(userId => CartService.deleteCartByUserId(userId)));
+
+        // Trả về kết quả cho client
+        return res.status(200).json(deleteResponses);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            status: 'ERR',
+            message: 'Internal Server Error'
+        });
+    }
+};
+
+const getAllCarts = async (req, res) => {
+    try {
+        const carts = await CartService.getAllCarts();
+
+        // Trả về kết quả cho client
+        return res.status(200).json({
+            status: 'OK',
+            message: 'All carts retrieved successfully',
+            data: carts
+        });
     } catch (error) {
         // Bắt lỗi và trả về lỗi cho client nếu có vấn đề xảy ra
         console.error(error);
@@ -54,8 +89,11 @@ const deleteCartByUserId = async (req, res) => {
         });
     }
 };
+
 module.exports = {
     createCart,
     getCartByUserId,
-    deleteCartByUserId
+    deleteCartByUserId,
+    deleteCarts,
+    getAllCarts
 };

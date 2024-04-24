@@ -1,52 +1,54 @@
-const jwt = require('jsonwebtoken')
+const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
-dotenv.config()
+dotenv.config();
+
+const secretKey = process.env.ACCESS_TOKEN;
+const resecretKey = process.env.REFRESH_TOKEN;
 
 const generalAccessToken = async (payload) => {
     const access_token = jwt.sign({
         ...payload
-    }, 'process.env.ACCESS_TOKEN', { expiresIn: '30s' })
+    }, secretKey, { expiresIn: '30s' });
 
-    return access_token
-}
+    return access_token;
+};
 
 const generalRefreshToken = async (payload) => {
     const refresh_token = jwt.sign({
         ...payload
-    }, 'process.env.REFRESH_TOKEN', { expiresIn: '365d' })
+    }, resecretKey, { expiresIn: '365d' });
 
-    return refresh_token
-}
+    return refresh_token;
+};
 
 const refreshTokenJwtService = (token) => {
     return new Promise((resolve, reject) => {
         try {
-            jwt.verify(token, process.env.REFRESH_TOKEN, async (err, user) => {
+            jwt.verify(token, resecretKey, async (err, user) => {
                 if (err) {
                     resolve({
                         status: 'ERR',
-                        message: 'The authemtication'
-                    })
+                        message: 'The authentication'
+                    });
                 }
                 const access_token = await generalAccessToken({
                     id: user?.id,
                     isAdmin: user?.isAdmin
-                })
+                });
                 resolve({
                     status: 'OK',
-                    message: 'SUCESS',
+                    message: 'SUCCESS',
                     access_token
-                })
-            })
+                });
+            });
         } catch (e) {
-            reject(e)
+            reject(e);
         }
-    })
-
-}
+    });
+};
 
 module.exports = {
     generalAccessToken,
     generalRefreshToken,
     refreshTokenJwtService
-}
+};

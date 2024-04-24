@@ -4,6 +4,7 @@ const CartController = require ('../controllers/CartController')
 
 router.post('/createCart', CartController.createCart)
 router.get('/getCart/:userId', CartController.getCartByUserId)
-router.delete('/deleteCart/:id', CartController.deleteCartByUserId)
-
+router.delete('/deleteCart/:userId', CartController.deleteCartByUserId)
+router.post('/deleteCarts', CartController.deleteCarts);
+router.get('/getAllCart', CartController.getAllCarts)
 module.exports = router

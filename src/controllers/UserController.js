@@ -5,7 +5,7 @@ const createUser = async (req, res) => {
         const { name, email, password, confirmPassword, phone } = req.body
         const reg = /^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/
         const isCheckEmail = reg.test(email)
-        if (!email || !password || !confirmPassword) {
+        if ( !name ,!email || !password || !confirmPassword || !phone) {
             return res.status(200).json({
                 status: 'ERR',
                 message: 'The input is required'
@@ -13,9 +13,10 @@ const createUser = async (req, res) => {
         } else if (!isCheckEmail) {
             return res.status(200).json({
                 status: 'ERR',
-                message: 'The input is email'
+                message: 'Invalid email format'
             })
         } else if (password !== confirmPassword) {
+            
             return res.status(200).json({
                 status: 'ERR',
                 message: 'The password is equal confirmPassword'
@@ -25,7 +26,7 @@ const createUser = async (req, res) => {
         return res.status(200).json(response)
     } catch (e) {
         return res.status(404).json({
-            message: e
+            message: "Register error"
         })
     }
 }
@@ -54,7 +55,7 @@ const loginUser = async (req, res) => {
         console.error(e);
         return res.status(500).json({
             status: 'ERR',
-            message: 'Server Error'
+            message: 'Login Error'
         });
     }
 };
@@ -75,7 +76,7 @@ const updateUser = async (req, res) => {
         return res.status(200).json(response)
     } catch (e) {
         return res.status(404).json({
-            message: e
+            message: "Update Failed"
         })
     }
 }
@@ -92,7 +93,7 @@ const deleteUser = async (req, res) => {
         return res.status(200).json(response)
     } catch (e) {
         return res.status(404).json({
-            message: e
+            message: "Delete failed"
         })
     }
 }
@@ -102,7 +103,7 @@ const getAllUser = async (req, res) => {
         return res.status(200).json(response)
     } catch (e) {
         return res.status(404).json({
-            message: e
+            message: "Get user failed"
         })
     }
 }
@@ -119,7 +120,7 @@ const getDetailsUser = async (req, res) => {
         return res.status(200).json(response)
     } catch (e) {
         return res.status(404).json({
-            message: e
+            message: "Get details user failed"
         })
     }
 }

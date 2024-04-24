@@ -1,16 +1,16 @@
 const mongoose = require('mongoose')
-const userSchema = new mongoose.Schema({
-    orderItem:[
+const orderSchema = new mongoose.Schema({
+    orderItems:[
         {
             name:{ type: String, required: true},
             amount:{type: Number, required: true},
             image:{type: String, required: true},
             price: {type: Number, required : true},
             product: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Product',
-            required: true,
-            },
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'Product',
+                required: true,
+            }, 
         },
     ],
     shippingAddress:{
