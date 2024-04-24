@@ -20,11 +20,10 @@ const createCart = async (newCart) => {
                     const productInfo = await Product.findById(product.productId);
                     if (productInfo.countInStock > 0) {
                         return {
-                            productId: product.productId,
                             name: productInfo.name,
                             image: productInfo.image,
                             price: productInfo.price,
-                            product: product.productId,
+                            product: productInfo,
                             quantity: 1
                         };
                     } else {
@@ -43,17 +42,18 @@ const createCart = async (newCart) => {
         }
         const cartProducts = await Product.find({ _id: { $in: products.map(product => product.productId) }});
         const productsForCart = cartProducts.map(product => ({
-            productId: product._id,
+            product: product,
             name: product.name,
             image: product.image,
             price: product.price,
-            product: product,
+            
             quantity: 1
         }));
 
         const createCart = await Cart.create({
             userId: userId,
-            products: productsForCart
+            products: productsForCart,
+            confirmed: false 
         });
 
         if (createCart) {
@@ -63,11 +63,39 @@ const createCart = async (newCart) => {
                 data: createCart
             };
         }
+        
     } catch (error) {
         console.error(error);
         throw error;
     }
+    
 };
+
+const confirmCartByUserId = async (userId) => {
+    try {
+        // Tìm giỏ hàng của người dùng dựa trên userId
+        const cart = await Cart.findOne({ userId });
+        if (!cart) {
+            return {
+                status: 'ERR',
+                message: 'Cart not found'
+            };
+        }
+
+        // Đặt trạng thái xác nhận thành true
+        cart.confirmed = true;
+        await cart.save();
+
+        return {
+            status: 'OK',
+            message: 'Cart confirmed successfully'
+        };
+    } catch (error) {
+        console.error(error);
+        throw new Error('Failed to confirm cart');
+    }
+};
+
 const getCartByUserId = async (userId) => {
     try {
         const cart = await Cart.findOne({ userId }).populate('products');
@@ -174,4 +202,5 @@ module.exports = {
     deleteCarts,
     getAllCarts,
     updateCartByUserId,
+    confirmCartByUserId
 };

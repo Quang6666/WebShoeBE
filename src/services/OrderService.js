@@ -1,54 +1,47 @@
 const Order = require('../models/OrderProduct'); // Import model Order
-
-const createOrder = (newOrder) => {
-    return new Promise(async (resolve, reject) => {
-        const { orderItem, shippingAddress, paymentMethod,itemsPrice,shippingPrice,taxPrice,totalPrice,user,isPaid,paidAt,isDelivered,deliveredAt} = newOrder
-        try {
-            const checkOrder = await Order.findOne({
-                orderItem: orderItem,
-                shippingAddress: shippingAddress,
-                paymentMethod: paymentMethod,
-                itemsPrice: itemsPrice,
-                shippingPrice:shippingPrice,
-                taxPrice:taxPrice,
-                user:user,
-                isPaid:isPaid,
-                paidAt:paidAt,
-                isDelivered:isDelivered,
-                deliveredAt:deliveredAt,
-
-                totalPrice: totalPrice
-            })
-            if (checkOrder !== null){
-                resolve({
-                    status: 'OK',
-                    message: 'The order is already'
-                })
-            }
-
-            const createOrder = await Order.create({
-                orderItem, shippingAddress, paymentMethod,itemsPrice,shippingPrice,taxPrice,totalPrice,user,isPaid,paidAt,isDelivered,deliveredAt
-            });
-            if (createOrder) {
-                resolve({
-                    status: 'OK',
-                    message: 'Order created successfully',
-                    data: createOrder
-                });
-            }
-        } catch (error) {
-            console.error(error);
-            reject(error);
+const Cart = require('../models/CartModel')
+const createOrderFromCart = async (userId) => {
+    try {
+        // Tìm giỏ hàng đã xác nhận dựa trên userId
+        const confirmedCart = await Cart.findOne({ userId }).populate('products.product');
+        if (!confirmedCart || !confirmedCart.confirmed) {
+            return {
+                status: 'ERR',
+                message: 'Confirmed cart not found'
+            };
         }
-    });
+
+        // Trích xuất thông tin cần thiết từ giỏ hàng đã xác nhận để tạo một đơn hàng mới
+        const orderItems = confirmedCart.products.map(product => ({
+            name: product.name,
+            amount: product.amount,
+            image: product.image,
+            price: product.price,
+            product: product.product._id
+        }));
+        const { shippingAddress, paymentMethod, totalPrice, user } = confirmedCart;
+
+        // Tạo một đơn hàng mới sử dụng thông tin đã trích xuất
+        const order = await Order.create({
+            orderItems,
+            shippingAddress,
+            paymentMethod,
+            totalPrice,
+            user
+        });
+
+        // Xóa giỏ hàng đã xác nhận
+        await Cart.deleteOne({ userId });
+
+        return {
+            status: 'OK',
+            message: 'Order created successfully',
+            data: order
+        };
+    } catch (error) {
+        console.error(error);
+        throw new Error('Failed to create order from cart');
+    }
 };
 
-const getOrderById = async (orderId) => {
-    try {
-        // Implementation of getOrderById function
-    } catch (error) {
-        throw new Error('Failed to fetch order');
-    }
-}
-
-module.exports = { createOrder, getOrderById };
+module.exports = { createOrderFromCart };
